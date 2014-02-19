@@ -60,7 +60,7 @@ function objectToArray($select)
 $sql    = "SELECT bgc.id, cc.name as category, c.fullname as coursename, c.shortname, bgc.linksnum AS resources, bgc.assignmentnum,
 bgc.feedbacknum, bgc.questnum, bgc.quiznum, bgc.interactnum as interactive_learning_objects, bgc.embednum as embedded_videos,
 bgc.booknum, bgc.databasenum, bgc.workshopnum, bgc.choicenum, bgc.glossarynum,
-bgc.wikinum, bgc.chatnum, bgc.forumnum, bgc.foldersnum, bgc.urlsnum, bgc.gsb
+bgc.wikinum, bgc.chatnum, bgc.forumnum, bgc.foldersnum, bgc.urlsnum, bgc.headingsnum, bgc.gsb
 FROM {block_gsb} bgc
 JOIN {course} c ON bgc.ids = c.id
 JOIN {course_categories} cc ON c.category = cc.id
