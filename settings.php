@@ -86,7 +86,7 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configselect('gsb/bronzeheadingstype', get_string('configbronzeheadings', 'report_gsb'),
                        get_string('configbronzeheadingsxp', 'report_gsb'), 'exclude', $selection));
 
-    $settings->add(new admin_setting_configcheckbox('gsb/bronzeheadings', get_string('bronzeheadings', 'report_gsb'),
+    $settings->add(new admin_setting_configtext('gsb/bronzeheadings', get_string('bronzeheadings', 'report_gsb'),
                    get_string('configdefaultbronzeheadings', 'report_gsb'), 0));			
 
     $settings->add(new admin_setting_configselect('gsb/bronzeurlstype', get_string('configbronzeurls', 'report_gsb'),
@@ -184,7 +184,7 @@ if ($ADMIN->fulltree) {
 	$settings->add(new admin_setting_heading('gsb/silver_heading', get_string('silver_heading', 'report_gsb'),
                        get_string('explaingeneralsilver', 'report_gsb')));
 
-    $settings->add(new admin_setting_configselect('gsb/silvernumoptional', get_string('silvernumoptional', 'report_gsb'),
+    $settings->add(new admin_setting_configtext('gsb/silvernumoptional', get_string('silvernumoptional', 'report_gsb'),
                             get_string('silvernumoptionalxp', 'report_gsb'),
                             '2', $count));
 							
@@ -209,7 +209,7 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configselect('gsb/silverheadingstype', get_string('configsilverheadings', 'report_gsb'),
                        get_string('configsilverheadingsxp', 'report_gsb'), 'exclude', $selection));
 
-    $settings->add(new admin_setting_configcheckbox('gsb/silverheadings', get_string('silverheadings', 'report_gsb'),
+    $settings->add(new admin_setting_configtext('gsb/silverheadings', get_string('silverheadings', 'report_gsb'),
                    get_string('configdefaultsilverheadings', 'report_gsb'), 0));			
 
     $settings->add(new admin_setting_configselect('gsb/silverurlstype', get_string('configsilverurls', 'report_gsb'),
@@ -332,7 +332,7 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configselect('gsb/goldheadingstype', get_string('configgoldheadings', 'report_gsb'),
                        get_string('configgoldheadingsxp', 'report_gsb'), 'exclude', $selection));
 
-    $settings->add(new admin_setting_configcheckbox('gsb/goldheadings', get_string('goldheadings', 'report_gsb'),
+    $settings->add(new admin_setting_configtext('gsb/goldheadings', get_string('goldheadings', 'report_gsb'),
                    get_string('configdefaultgoldheadings', 'report_gsb'), 0));			
 
     $settings->add(new admin_setting_configselect('gsb/goldurlstype', get_string('configgoldurls', 'report_gsb'),
