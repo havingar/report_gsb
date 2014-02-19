@@ -319,41 +319,38 @@ foreach($get_dept_codes as $row => $values) {
 					$headingnum = 0;
 					}
 					$updgsb->headingsnum = $headingnum;						
-					
 
-					$labelfilenum = $DB->get_record_sql("SELECT DISTINCT ROUND((LENGTH(intro)-LENGTH(REPLACE(intro, '@@PLUGINFILE@@', '')))/13) AS COUNT FROM {label} WHERE course ='$courseid'");
-					if(isset($labelfilenum->count)){					
-					$labelfilenum = $labelfilenum->count;
-					}else{
-					$labelfilenum = 0;
-					}
+					//number of files in labels
 
 					
+					$cparams = array('cid' => $courseid, 'file' => '%@@PLUGINFILE@@%');				
+					$select = "course = :cid AND ".$DB->sql_like('intro', ':file');
+					$labelfilenum = $DB->count_records_select('label', $select, $cparams);
+
 				//Number of files in web pages
 				
-					//$pagefilenum = $DB->get_records_sql("SELECT {page}.id FROM {page} WHERE course = '$courseid' AND (content LIKE '%@@PLUGINFILE@@%' )");
-					//Checking how many times plugin file appears in labels within a particular course
-					$pagefilenum = $DB->get_record_sql("SELECT ROUND((LENGTH(content)-LENGTH(REPLACE(content, '@@PLUGINFILE@@', '')))/13) AS COUNT FROM {page} WHERE course ='$courseid'");
-					if(isset($pagefilenum->count)){						
-					$pagefilenum = $pagefilenum->count;
-					}else{
-					$pagefilenum = 0;
-					}
+					$select = "course = :cid AND ".$DB->sql_like('content', ':file');
+					$pagefilenum = $DB->count_records_select('page', $select, $cparams);
+
 				//Number of files in books
 				
-					if ($dbman->table_exists('book_chapters')) {
+
+				
+				if ($dbman->table_exists('book_chapters')) {
 					
 						//$bookfilenum = $DB->get_records_sql("SELECT {book_chapters}.id FROM {book_chapters} INNER JOIN {book} ON {book_chapters}.bookid = {book}.id WHERE {book}.course = '$courseid' AND (content LIKE '%@@PLUGINFILE@@%' )");
-						//Checking how many times plugin file appears in labels within a particular course												
-						$bookfilenum = $DB->get_record_sql("SELECT ROUND((LENGTH(content)-LENGTH(REPLACE(content, '@@PLUGINFILE@@', '')))/13) AS COUNT FROM {book_chapters} INNER JOIN {book} ON {book_chapters}.bookid = {book}.id WHERE {book}.course = '$courseid' ");													
+						//Checking how many times plugin file appears in labels within a particular course				
+					$content = $DB->sql_length("content");
+					$plugin = $DB->sql_length("REPLACE(content, '@@PLUGINFILE@@', '')");	
+					$bookfilenum = $DB->get_record_sql("SELECT ROUND(($content-$plugin)/13) AS COUNT FROM {book_chapters} INNER JOIN {book} ON {book_chapters}.bookid = {book}.id WHERE {book}.course = '$courseid' ");													
 					if(isset($bookfilenum->count)){								
 						$bookfilenum = $bookfilenum->count;
 					}else{
-					$bookfilenum = 0;
+						$bookfilenum = 0;
 					}
-					}else{
+				}else{
 					$bookfilenum = 0;
-					}
+				}
 					
 					//files within folders
 					
@@ -523,11 +520,11 @@ foreach($get_dept_codes as $row => $values) {
 	
 	if($config->studentviews > $studentviews) {
 
-		$gsb_score = "";
+		$gsb_score = "Exclude";
 		
 	} elseif($config->minenrolments >= $enrolnum) {
 
-		$gsb_score = "";
+		$gsb_score = "Exclude";
 		
 	} else {
 
