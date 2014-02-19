@@ -184,7 +184,7 @@ if ($ADMIN->fulltree) {
 	$settings->add(new admin_setting_heading('gsb/silver_heading', get_string('silver_heading', 'report_gsb'),
                        get_string('explaingeneralsilver', 'report_gsb')));
 
-    $settings->add(new admin_setting_configtext('gsb/silvernumoptional', get_string('silvernumoptional', 'report_gsb'),
+    $settings->add(new admin_setting_configselect('gsb/silvernumoptional', get_string('silvernumoptional', 'report_gsb'),
                             get_string('silvernumoptionalxp', 'report_gsb'),
                             '2', $count));
 							
