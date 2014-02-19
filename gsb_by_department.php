@@ -310,15 +310,11 @@ foreach($get_dept_codes as $row => $values) {
 					
 				//Are any sections not given headings - only use when having topic headings in course formats and headings are defined for all topics.
 				
-					//$headingsnum1 =  ($DB->count_records('course_sections', array('course'=>$courseid))) - 1;	
-					$headingsnum2 = $DB->count_records('course_sections', array('course'=>$courseid, 'name'=>NULL));
-					$headingsnum3 = $headingsnum2;
-					if($headingsnum3 < 1){
-					$headingnum = 1;
-					}else{
-					$headingnum = 0;
-					}
-					$updgsb->headingsnum = $headingnum;						
+				//Changing to Minimum number of section headings 
+					$cparams1 = array('cid' => $courseid, 'text' => '%%');				
+					$select = "course = :cid AND ".$DB->sql_like('name', ':text');
+					$headingsnum = $DB->count_records_select('course_sections', $select, $cparams1);							
+                    $updgsb->headingsnum = $headingsnum;        				
 
 					//number of files in labels
 
