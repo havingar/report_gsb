@@ -111,17 +111,7 @@ FROM {course}, {block_gsb} g JOIN {course} c ON c.id = g.ids";
 						$DB->update_record('block_gsb', $updgsb); 
 					} 
 					break;
-				
-				case "In Dev":
-					$finalgsb = ""; 
-					$updgsb->id = $gsbid;
-					$updgsb->gsb = $finalgsb;
-					$updgsb->gsboverride = 'yes';
-					if ($DB->record_exists('block_gsb', array('id' => $updgsb->id))) {
-						$DB->update_record('block_gsb', $updgsb); 
-					} 
-					break;
-				
+							
 				default: 
 					$finalgsb = $override;
 					$updgsb->id = $gsbid;
