@@ -250,7 +250,8 @@ $sql = "SELECT {block_gsb}.id AS gb, {course}.id, {course}.shortname, {course}.f
 $get_dept_codes = $DB->get_records_sql($sql);
 
 foreach ($get_dept_codes as $row => $values) {
-    
+
+   
     $courseid        = $values->id;
     $gsbid           = $values->gb;
     $courseshortname = $values->shortname;
@@ -567,7 +568,7 @@ foreach ($get_dept_codes as $row => $values) {
         $studentviews = 0;
     }
     
-}
+
 if ($config->studentviews > $studentviews) {
     $gsb_score = "Exclude";
     
@@ -1176,8 +1177,8 @@ if ($config->studentviews > $studentviews) {
     else
         $gsb_score = "In Dev";
     
-}
 
+}
 
 echo "<tr>				
 				<td><font face='Arial' size='2'>$courseshortname</font></td>
@@ -1205,7 +1206,8 @@ echo "<tr>
 				<input type='hidden' name='all' value='all'>
 				";
 
-
+}
 echo "</form></table>";
+
 echo $OUTPUT->footer();
 ?>

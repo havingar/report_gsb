@@ -569,7 +569,7 @@ foreach ($get_dept_codes as $row => $values) {
         $studentviews = 0;
     }
     
-}
+
 if ($config->studentviews > $studentviews) {
     $gsb_score = "Exclude";
     
@@ -1211,6 +1211,8 @@ echo "<tr>
 				";
 
 
-echo "<input type='hidden' name='course' value='$deptname'></form></table>";
+echo "<input type='hidden' name='course' value='$deptname'>";
+}
+echo "</form></table>";
 echo $OUTPUT->footer();
 ?>
