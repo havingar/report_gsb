@@ -571,10 +571,10 @@ foreach ($get_dept_codes as $row => $values) {
     
 
 if ($config->studentviews > $studentviews) {
-    $gsb_score = "Exclude";
+    $gsb_score = "In Dev";
     
 } elseif ($config->minenrolments >= $enrolnum) {
-    $gsb_score = "Exclude";
+    $gsb_score = "In Dev";
 } else {
     
     $bop_count = 0;
