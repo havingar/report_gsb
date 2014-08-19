@@ -42,38 +42,27 @@ echo $OUTPUT->header().
 
 $config = get_config('gsb');
 
- if(isset($_POST['categoryid'])) {
-$submitted = $_POST['submit2'];
-$course = $_POST['course'];
-
-$categoryid = $_POST['categoryid'];
+if (isset($_POST['categoryid'])) {
+	$categoryid = $_POST['categoryid'];
+	$course     = $_POST['course'];
 }
-
-if(isset($_POST['all'])){
-$submitted = $_POST['submit2'];
-
-}	
 
 //Once medals are set from gsb_by_department.php
-if (ISSET($submitted)) {
+if (!empty($_POST['gsb'])) {
 
-if(isset($categoryid)){
-$sql = "SELECT DISTINCT c.id, g.gsboverride
-FROM {course}, {block_gsb} g JOIN {course} c ON c.id = g.ids
-WHERE {course}.category = " . $categoryid . " ";
+	$sql = "SELECT DISTINCT {course}.id, {block_gsb}.gsboverride
+			FROM {block_gsb}
+			JOIN {course} ON {course}.id = {block_gsb}.ids";
 
-}else{
-$sql = "SELECT DISTINCT c.id, g.gsboverride
-FROM {course}, {block_gsb} g JOIN {course} c ON c.id = g.ids";
-}
+	if (isset($categoryid)) {
+		$sql .= "WHERE {course}.category = " . $categoryid;
+	}
 
 	$get_dept_codes = $DB->get_records_sql($sql);
 
 	foreach($get_dept_codes as $row => $values) {
 
 		$courseid = $values->id;
-		
-		
 
 		$gsboverride = $values->gsboverride;	
 		//loop through and update gsb status for courses
@@ -91,52 +80,44 @@ FROM {course}, {block_gsb} g JOIN {course} c ON c.id = g.ids";
 			$current = "";
 			$override = "";
 		}
+
 		if ($override !=""){
-		$currentover = "";
+			$currentover = "";
 		}
 
 		if ($gsboverride != "" && $override != $current && $currentover != "yes") {
 		
-		if(!isset($updgsb)){
-			$updgsb = new stdClass;
-		}
-			switch ($override) {
-				case "":
-				case "remove":
-					$finalgsb = $current;
-					$updgsb->id = $gsbid;
-					$updgsb->gsb = $finalgsb;
-					$updgsb->gsboverride = 'no';
-					if ($DB->record_exists('block_gsb', array('id' => $updgsb->id))) {
-						$DB->update_record('block_gsb', $updgsb); 
-					} 
-					break;
-							
-				default: 
-					$finalgsb = $override;
-					$updgsb->id = $gsbid;
-					$updgsb->gsb = $finalgsb;
-					$updgsb->gsboverride = 'yes';
-					if ($DB->record_exists('block_gsb', array('id' => $updgsb->id))) {
-						$DB->update_record('block_gsb', $updgsb); 
-					} 
-					break;
+			if (!isset($updgsb))
+				$updgsb = new stdClass;
+
+			if ($override == "" || $override == "remove"){
+				$finalgsb = $current;
+				$updgsb->gsboverride = 'no';
+			} else {
+				$finalgsb = $override;
+				$updgsb->gsboverride = 'yes';
+			}
+
+			$updgsb->id = $gsbid;
+			$updgsb->gsb = $finalgsb;
+			if ($DB->record_exists('block_gsb', array('id' => $updgsb->id))) {
+				$DB->update_record('block_gsb', $updgsb);
 			}
 		
 		}
 	}
 	
-if(isset($categoryid)){
-	echo "<h3><font face='Arial' color='#FF0000'>Gsb medals have been processed for </font><font face='Arial' color='#0000FF'>$course</font></h3>";
-}else{
-	echo "<h3><font face='Arial' color='#FF0000'>Gsb medals have been processed for </font><font face='Arial' color='#0000FF'>All Courses</font></h3>";
-}
+	if (isset($categoryid)) {
+		echo "<h3><font face='Arial' color='#FF0000'>Gsb medals have been processed for </font><font face='Arial' color='#0000FF'>$course</font></h3>";
+	} else {
+		echo "<h3><font face='Arial' color='#FF0000'>Gsb medals have been processed for </font><font face='Arial' color='#0000FF'>All Courses</font></h3>";
+	}
+
 	echo "<a href='javascript:location.reload(true)'>Refresh this page</a>";
 
 }
-		
 
-if($config->subcategories == '1') {
+if ($config->subcategories == '1') {
 	$sql = "SELECT id, name FROM {course_categories} ORDER BY name";
 } else {
 	$sql = "SELECT id, name FROM {course_categories} WHERE depth = '1' ORDER BY name";
@@ -150,17 +131,13 @@ echo "<select size='1' name='dept'>";
 
 //loop through and list department names in drop down box
 foreach ($get_dept_codes as $record => $value) {
-			
-	$catid = $record;
-	$catname = $value;
-	echo "<option name='category' value=$catid>$catname</option>";
-	echo "<br />";
+	echo "<option name='category' value=$record>$value</option>";
 }
 
 echo "</select></p><p><input type='submit' value='Submit' name='submit'></p></form>";
 $enrolments = $config->minenrolments;
 list ($insql, $params) = $DB->get_in_or_equal(explode(',', $config->studentrole), SQL_PARAMS_NAMED); 	
-if($config->subcategories == '1') {
+if ($config->subcategories == '1') {
 	
     $sql = "SELECT c.id, ra.roleid, COUNT(ra.roleid) AS studentsenrolled
             FROM {course} c
@@ -180,18 +157,19 @@ if($config->subcategories == '1') {
             GROUP BY c.id, ra.roleid, cc.depth
             HAVING COUNT(ra.roleid) > :enrolments";
 }
+
 $params['enrolments'] = $enrolments;
 $sql = "SELECT * FROM mdl_block_gsb WHERE gsb != 'Exclude'";
 $totalcourses = $DB->get_records_sql($sql); 
 $total = count($totalcourses);
 
-$gold_total = $DB->count_records('block_gsb', array('gsb'=>'Gold'));
-$silver_total = $DB->count_records('block_gsb', array('gsb'=>'Silver'));
-$bronze_total = $DB->count_records('block_gsb', array('gsb'=>'Bronze'));		
-$indev_total = $DB->count_records('block_gsb', array('gsb'=>'In Dev'));		
-$exclude_total = $DB->count_records('block_gsb', array('gsb'=>'Exclude'));	
+$gold_total     = $DB->count_records('block_gsb', array('gsb'=>'Gold'));
+$silver_total   = $DB->count_records('block_gsb', array('gsb'=>'Silver'));
+$bronze_total   = $DB->count_records('block_gsb', array('gsb'=>'Bronze'));
+$indev_total    = $DB->count_records('block_gsb', array('gsb'=>'In Dev'));
+$exclude_total  = $DB->count_records('block_gsb', array('gsb'=>'Exclude'));
 
-if($total > 0) {
+if ($total > 0) {
 
 	$gold_perc = $gold_total / $total * 100;
 	$gold_perc_form = sprintf ('%01.1f', $gold_perc);
@@ -213,13 +191,14 @@ if($total > 0) {
 	$indev_perc_form = 0;	
 }
 
-$table = "<div align='center'>
-			<table style='text-align: left; width: 20%;' border='0' cellpadding='2' cellspacing='2'>
-				<tbody>
-					<tr>
-					<td style='width: 100%;'>
-						<div align='center'>
-						  <table width='100%' border='0' cellspacing='0' cellpadding='0'>
+$table = "
+<div align='center'>
+	<table style='text-align: left; width: 20%;' border='0' cellpadding='2' cellspacing='2'>
+		<tbody>
+			<tr>
+				<td style='width: 100%;'>
+					<div align='center'>
+						<table width='100%' border='0' cellspacing='0' cellpadding='0'>
 							<tr>
 							  <td width='100%' colspan='4'><font face='Arial'><h3 align='center'>GSB Summary</h3></font></td>
 							</tr>
@@ -247,7 +226,7 @@ $table = "<div align='center'>
 							  <td width='25%'><font face='Arial' size='2'><div align='left'>" . $indev_total . "</div></td>
 							  <td width='10%'><div align='left'><font face='Arial' size='1'>" . $indev_perc_form . "%</div></td>
 							</tr>
-								  </table>
+						</table>
 						  <hr>
 						<table width='100%' border='0' cellpadding='0' cellspacing='0'>
 							<tr>
@@ -257,17 +236,17 @@ $table = "<div align='center'>
 							  <td width='10%'><div align='left'>&nbsp;</div></td>
 							</tr>
 						</table>
-						</div>
-					</td>
-				</tr>
-			</tbody>
-			</table>
-		</div>";
+					</div>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</div>
+";
 
 echo $table;
-			
-$downloadgsb = "<p><font face='Arial'><a href='$CFG->wwwroot/report/gsb/download_gsb.php'>Download GSB Report to Excel</a></font></p>";
-echo $downloadgsb;
+
+echo "<p><font face='Arial'><a href='$CFG->wwwroot/report/gsb/download_gsb.php'>Download GSB Report to Excel</a></font></p>";
 echo "<p><font face='Arial' size='1'><br/>Note: you should process the GSB Medals for each department before attempting to download the GSB Report</a></font></p>";
 echo $OUTPUT->footer();
 
