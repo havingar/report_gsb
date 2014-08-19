@@ -42,7 +42,6 @@ echo $OUTPUT->header() . $OUTPUT->heading(get_string('gsbdepartment', 'report_gs
 $config = get_config('gsb');
 
 
-
 //Bronze Settings
 
 $boptional        = $config->bronzenumoptional;
@@ -184,8 +183,6 @@ FROM {user} INNER JOIN (({role_assignments} INNER JOIN {context} ON {role_assign
 WHERE category = $categoryid";
 $getcourseids = $DB->get_records_sql($sql);
 
-echo "</br>";
-
 foreach ($getcourseids as $row => $values) {
     
     $courseid1  = $values->id;
@@ -252,7 +249,7 @@ $sql = "SELECT {block_gsb}.id AS gb, {course}.id, {course}.shortname, {course}.f
 $get_dept_codes = $DB->get_records_sql($sql);
 
 foreach ($get_dept_codes as $row => $values) {
-    
+
     $courseid        = $values->id;
     $gsbid           = $values->gb;
     $courseshortname = $values->shortname;
@@ -260,20 +257,14 @@ foreach ($get_dept_codes as $row => $values) {
     $old_gsb_score   = $values->gsb;
     $gsboverride     = $values->gsboverride;
     
-    if ($old_gsb_score == "")
-        $old_gsb_score = "";
-    else
-        $old_gsb_score = $old_gsb_score;
-    
-    
     //selecting the context id for enrolments. This then can be used to search the number of course enrolments. 
     $level   = '50';
     $sql     = "SELECT {context}.id FROM  {context}	WHERE {context}.contextlevel = '$level' AND {context}.instanceid = '$courseid'";
     $context = $DB->get_records_sql($sql);
-    if (isset($updgsb)) {
-    } else {
-        $updgsb = new stdClass();
-    }
+
+    if (!isset($updgsb))
+		$updgsb = new stdClass();
+
     foreach ($context as $row => $values) {
         
         $contextid = $values->id;
@@ -289,42 +280,34 @@ foreach ($get_dept_codes as $row => $values) {
         ))) {
             $DB->update_record('block_gsb', $updgsb);
         }
-        
-        
     }
     
     //Stats Inserting based upon standard activity types
-    //Stats Inserting based upon standard activity types
     $updgsb->id = $gsbid;
     
-    //Number of File Resources 
-    
+    //Number of File Resources
     $linksnum = $DB->count_records('resource', array(
         'course' => $courseid
     ));
     
-    //Number of Folders 
-    
-    $foldersnum         = $DB->count_records('folder', array(
+    //Number of Folders
+    $foldersnum = $DB->count_records('folder', array(
         'course' => $courseid
     ));
     $updgsb->foldersnum = $foldersnum;
     
-    //Number of Labels 
-    
-    $labelsnum         = $DB->count_records('label', array(
+    //Number of Labels
+    $labelsnum = $DB->count_records('label', array(
         'course' => $courseid
     ));
     $updgsb->labelsnum = $labelsnum;
-    //Number of URLs 
-    
-    $urlsnum         = $DB->count_records('url', array(
+
+    //Number of URLs
+    $urlsnum = $DB->count_records('url', array(
         'course' => $courseid
     ));
     $updgsb->urlsnum = $urlsnum;
-    
-    //Are any sections not given headings - only use when having topic headings in course formats and headings are defined for all topics.
-    
+
     //Are any sections not given headings - only use when having topic headings in course formats and headings are defined for all topics.
     
     //Changing to Minimum number of section headings 
@@ -336,9 +319,7 @@ foreach ($get_dept_codes as $row => $values) {
     $headingsnum         = $DB->count_records_select('course_sections', $select, $cparams1);
     $updgsb->headingsnum = $headingsnum;
     
-    //number of files in labels
-    
-    
+    //Number of files in labels
     $cparams      = array(
         'cid' => $courseid,
         'file' => '%@@PLUGINFILE@@%'
@@ -347,14 +328,10 @@ foreach ($get_dept_codes as $row => $values) {
     $labelfilenum = $DB->count_records_select('label', $select, $cparams);
     
     //Number of files in web pages
-    
     $select      = "course = :cid AND " . $DB->sql_like('content', ':file');
     $pagefilenum = $DB->count_records_select('page', $select, $cparams);
     
     //Number of files in books
-    
-    
-    
     if ($dbman->table_exists('book_chapters')) {
         
         //$bookfilenum = $DB->get_records_sql("SELECT {book_chapters}.id FROM {book_chapters} INNER JOIN {book} ON {book_chapters}.bookid = {book}.id WHERE {book}.course = '$courseid' AND (content LIKE '%@@PLUGINFILE@@%' )");
@@ -372,7 +349,6 @@ foreach ($get_dept_codes as $row => $values) {
     }
     
     //files within folders
-    
     $folder  = $DB->get_records_sql("SELECT {folder}.id FROM {folder} WHERE course = '$courseid'");
     $count   = 0;
     $folders = 0;
@@ -391,7 +367,6 @@ foreach ($get_dept_codes as $row => $values) {
     $updgsb->linksnum = $linksnum;
     
     //Number of Standard Assignments
-    
     if ($dbman->table_exists('assignment')) {
         $assignmentnum1 = $DB->count_records('assignment', array(
             'course' => $courseid
@@ -406,6 +381,7 @@ foreach ($get_dept_codes as $row => $values) {
     } else {
         $assignmentnum2 = 0;
     }
+
     //Number of Turnitin Assignments	
     if ($dbman->table_exists('turnitintool')) {
         $assignmentnum3 = $DB->count_records('turnitintool', array(
@@ -418,45 +394,40 @@ foreach ($get_dept_codes as $row => $values) {
     $updgsb->assignmentnum = $assignmentnum;
     
     //Number of Feedback Activities
-    
-    $feedbacknum         = $DB->count_records('feedback', array(
+	$feedbacknum = $DB->count_records('feedback', array(
         'course' => $courseid
     ));
     $updgsb->feedbacknum = $feedbacknum;
     
     //Number of IMS packages
-    
-    $interactnum         = $DB->count_records('imscp', array(
+    $interactnum = $DB->count_records('imscp', array(
         'course' => $courseid
     ));
     $updgsb->interactnum = $interactnum;
     
     //Number of Questionnaires
     if ($dbman->table_exists('questionnaire')) {
-        $questnum         = $DB->count_records('questionnaire', array(
+        $questnum = $DB->count_records('questionnaire', array(
             'course' => $courseid
         ));
         $updgsb->questnum = $questnum;
     }
+
     //Number of Quiz
-    
-    $quiznum         = $DB->count_records('quiz', array(
+    $quiznum = $DB->count_records('quiz', array(
         'course' => $courseid
     ));
     $updgsb->quiznum = $quiznum;
     
     //Number of embedded Videos search by "embed" or "iframe" on a main page
-    
     $embed1num = $DB->get_records_sql("SELECT {label}.id FROM {label} WHERE course = '$courseid' AND (intro LIKE '%iframe%' OR intro LIKE '%embed%')");
     $embed1num = count($embed1num);
     
     //Number of embedded Videos search by "embed" or "iframe" on a web page
-    
     $embedpagenum = $DB->get_records_sql("SELECT {page}.id FROM {page} WHERE course = '$courseid' AND (content LIKE '%iframe%' OR intro LIKE '%embed%')");
     $embedpagenum = count($embedpagenum);
     
-    //number of Videos in a Book
-    
+    //Number of Videos in a Book
     if ($dbman->table_exists('book_chapters')) {
         $bookvidnum = $DB->get_records_sql("SELECT {book_chapters}.id FROM {book_chapters} INNER JOIN {book} ON {book_chapters}.bookid = {book}.id WHERE {book}.course = '$courseid' AND (content LIKE '%embed%' OR intro LIKE '%iframe%')");
         $bookvidnum = count($bookvidnum);
@@ -465,71 +436,63 @@ foreach ($get_dept_codes as $row => $values) {
     $updgsb->embednum = $embednum;
     
     //Number of Chat Activities
-    $chatnum         = $DB->count_records('chat', array(
+    $chatnum = $DB->count_records('chat', array(
         'course' => $courseid
     ));
     $updgsb->chatnum = $chatnum;
     
     //Number of Forums
-    
-    $forumnum         = $DB->count_records('forum', array(
+    $forumnum = $DB->count_records('forum', array(
         'course' => $courseid
     ));
     $updgsb->forumnum = $forumnum;
     
     //Number of Wikis
-    
-    $wikinum         = $DB->count_records('wiki', array(
+    $wikinum = $DB->count_records('wiki', array(
         'course' => $courseid
     ));
     $updgsb->wikinum = $wikinum;
     
     //Number of Books
     if ($dbman->table_exists('book')) {
-        $booknum         = $DB->count_records('book', array(
+        $booknum = $DB->count_records('book', array(
             'course' => $courseid
         ));
         $updgsb->booknum = $booknum;
-        
     }
     
     //Number of Databases
     if ($dbman->table_exists('data')) {
-        $databasenum         = $DB->count_records('data', array(
+        $databasenum = $DB->count_records('data', array(
             'course' => $courseid
         ));
         $updgsb->databasenum = $databasenum;
-        
     }
     
-    //Numer of Workshops
+    //Number of Workshops
     if ($dbman->table_exists('workshop')) {
-        $workshopnum         = $DB->count_records('workshop', array(
+        $workshopnum = $DB->count_records('workshop', array(
             'course' => $courseid
         ));
         $updgsb->workshopnum = $workshopnum;
-        
     }
     
     //Number of Choice Activities
     if ($dbman->table_exists('choice')) {
-        $choicenum         = $DB->count_records('choice', array(
+        $choicenum = $DB->count_records('choice', array(
             'course' => $courseid
         ));
         $updgsb->choicenum = $choicenum;
-        
     }
     
     //Number of Glossaries
     if ($dbman->table_exists('glossary')) {
-        $glossarynum         = $DB->count_records('glossary', array(
+        $glossarynum = $DB->count_records('glossary', array(
             'course' => $courseid
         ));
         $updgsb->glossarynum = $glossarynum;
-        
     }
-    
-    
+
     //TODO: Add button to process all Medals onto index.php in report. 
     //Change images of medals to look more professional
     if ($DB->record_exists('block_gsb', array(
@@ -561,636 +524,651 @@ foreach ($get_dept_codes as $row => $values) {
 										 WHERE contextlevel= " . CONTEXT_COURSE . " AND instanceid=l.course
 										 )AND r.roleid $insql
 										 AND r.userid = u.id", $params);
-    
-    
+
     if ($nostudent->students > 0) {
         $studentviews = round($studentviewsobj->views / $nostudent->students, 0);
     } else {
         $studentviews = 0;
     }
-    
 
-if ($config->studentviews > $studentviews) {
-    $gsb_score = "In Dev";
-    
-} elseif ($config->minenrolments >= $enrolnum) {
-    $gsb_score = "In Dev";
-} else {
-    
-    $bop_count = 0;
-    $break     = 0;
-    
-    if ($bresourcetype == 'optional') {
-        if ($linksnum >= $bresources)
-            $bop_count++;
-    } else {
-        if ($bresourcetype == 'mandatory') {
-            if ($linksnum < $bresources)
-                $break++;
-        }
-    }
-    
-    if ($bassignmentstype == 'optional') {
-        if ($assignmentnum >= $bassignments)
-            $bop_count++;
-    } else {
-        if ($bassignmentstype == 'mandatory') {
-            if ($assignmentnum < $bassignments)
-                $break++;
-        }
-    }
-    
-    if ($bfeedbacktype == 'optional') {
-        if ($feedbacknum >= $bfeedback)
-            $bop_count++;
-    } else {
-        if ($bfeedbacktype == 'mandatory') {
-            if ($feedbacknum < $bfeedback)
-                $break++;
-        }
-    }
-    
-    if ($bimstype == 'optional') {
-        if ($interactnum >= $bims)
-            $bop_count++;
-    } else {
-        if ($bimstype == 'mandatory') {
-            if ($interactnum < $bims)
-                $break++;
-        }
-    }
-    if ($dbman->table_exists('questionnaire')) {
-        if ($bquesttype == 'optional') {
-            if ($questnum >= $bquest)
-                $bop_count++;
-        } else {
-            if ($bquesttype == 'mandatory') {
-                if ($questnum < $bquest)
-                    $break++;
-            }
-        }
-    }
-    
-    if ($bquiztype == 'optional') {
-        if ($quiznum >= $bquiz)
-            $bop_count++;
-    } else {
-        if ($bquiztype == 'mandatory') {
-            if ($quiznum < $bquiz)
-                $break++;
-        }
-    }
-    
-    if ($bembedtype == 'optional') {
-        if ($embednum >= $bembed)
-            $bop_count++;
-    } else {
-        if ($bembedtype == 'mandatory') {
-            if ($embednum < $bembed)
-                $break++;
-        }
-    }
-    
-    if ($bchattype == 'optional') {
-        if ($chatnum >= $bchat)
-            $bop_count++;
-    } else {
-        if ($bchattype == 'mandatory') {
-            if ($chatnum < $bchat)
-                $break++;
-        }
-    }
-    
-    if ($bforumtype == 'optional') {
-        if ($forumnum >= $bforum)
-            $bop_count++;
-    } else {
-        if ($bforumtype == 'mandatory') {
-            if ($forumnum < $bforum)
-                $break++;
-        }
-    }
-    if ($bwikitype == 'optional') {
-        if ($wikinum >= $bwiki)
-            $bop_count++;
-    } else {
-        if ($bwikitype == 'mandatory') {
-            if ($wikinum < $bwiki)
-                $break++;
-        }
-    }
-    if ($bbooktype == 'optional') {
-        if ($booknum >= $bbook)
-            $bop_count++;
-    } else {
-        if ($bbooktype == 'mandatory') {
-            if ($booknum < $bbook)
-                $break++;
-        }
-    }
-    if ($bdatabasetype == 'optional') {
-        if ($databasenum >= $bdatabase)
-            $bop_count++;
-    } else {
-        if ($bdatabasetype == 'mandatory') {
-            if ($databasenum < $bdatabase)
-                $break++;
-        }
-    }
-    
-    if ($bworkshoptype == 'optional') {
-        if ($workshopnum >= $bworkshop)
-            $bop_count++;
-    } else {
-        if ($bworkshoptype == 'mandatory') {
-            if ($workshopnum < $bworkshop)
-                $break++;
-        }
-    }
-    if ($bchoicetype == 'optional') {
-        if ($choicenum >= $bchoice)
-            $bop_count++;
-    } else {
-        if ($bchoicetype == 'mandatory') {
-            if ($choicenum < $bchoice)
-                $break++;
-        }
-    }
-    if ($bglossarytype == 'optional') {
-        if ($glossarynum >= $bglossary)
-            $bop_count++;
-    } else {
-        if ($bglossarytype == 'mandatory') {
-            if ($glossarynum < $bglossary)
-                $break++;
-        }
-    }
-    if ($blabelstype == 'optional') {
-        if ($labelsnum >= $blabels)
-            $bop_count++;
-    } else {
-        if ($blabelstype == 'mandatory') {
-            if ($labelsnum < $blabels)
-                $break++;
-        }
-    }
-    if ($burlstype == 'optional') {
-        if ($urlsnum >= $burls)
-            $bop_count++;
-    } else {
-        if ($burlstype == 'mandatory') {
-            if ($urlsnum < $burls)
-                $break++;
-        }
-    }
-    if ($bfolderstype == 'optional') {
-        if ($foldersnum >= $bfolders)
-            $bop_count++;
-    } else {
-        if ($bfolderstype == 'mandatory') {
-            if ($foldersnum < $bfolders)
-                $break++;
-        }
-    }
-    
-    if ($bheadingstype == 'optional') {
-        if ($headingnum >= $bheadings)
-            $bop_count++;
-    } else {
-        if ($bheadingstype == 'mandatory') {
-            if ($headingnum < $bheadings)
-                $break++;
-        }
-    }
-    if (($bop_count >= $config->bronzenumoptional) && ($break < 1)) {
-        $gsb_bronze = 1;
-        $gsb_score  = "Bronze";
-        
-    } else {
-        $gsb_bronze = 0;
-        $gsb_score  = "";
-    }
-    $sop_count = 0;
-    $break     = 0;
-    if ($gsb_bronze == 1) {
-        
-        
-        
-        
-        if ($sresourcetype == 'optional') {
-            if ($linksnum >= $sresources)
-                $sop_count++;
-        } else {
-            if ($sresourcetype == 'mandatory') {
-                if ($linksnum < $sresources)
-                    $break++;
-            }
-        }
-        
-        if ($sassignmentstype == 'optional') {
-            if ($assignmentnum >= $sassignments)
-                $sop_count++;
-        } else {
-            if ($sassignmentstype == 'mandatory') {
-                if ($assignmentnum < $sassignments)
-                    $break++;
-            }
-        }
-        
-        if ($sfeedbacktype == 'optional') {
-            if ($feedbacknum >= $sfeedback)
-                $sop_count++;
-        } else {
-            if ($sfeedbacktype == 'mandatory') {
-                if ($feedbacknum < $sfeedback)
-                    $break++;
-            }
-        }
-        
-        if ($simstype == 'optional') {
-            if ($interactnum >= $sims)
-                $sop_count++;
-        } else {
-            if ($simstype == 'mandatory') {
-                if ($interactnum < $sims)
-                    $break++;
-            }
-        }
-        if ($dbman->table_exists('questionnaire')) {
-            if ($squesttype == 'optional') {
-                if ($questnum >= $squest)
-                    $sop_count++;
-            } else {
-                if ($squesttype == 'mandatory') {
-                    if ($questnum < $squest)
-                        $break++;
-                }
-            }
-        }
-        
-        if ($squiztype == 'optional') {
-            if ($quiznum >= $squiz)
-                $sop_count++;
-        } else {
-            if ($squiztype == 'mandatory') {
-                if ($quiznum < $squiz)
-                    $break++;
-            }
-        }
-        
-        if ($sembedtype == 'optional') {
-            if ($embednum >= $sembed)
-                $sop_count++;
-        } else {
-            if ($sembedtype == 'mandatory') {
-                if ($embednum < $sembed)
-                    $break++;
-            }
-        }
-        
-        if ($schattype == 'optional') {
-            if ($chatnum >= $schat)
-                $sop_count++;
-        } else {
-            if ($schattype == 'mandatory') {
-                if ($chatnum < $schat)
-                    $break++;
-            }
-        }
-        
-        if ($sforumtype == 'optional') {
-            if ($forumnum >= $sforum)
-                $sop_count++;
-        } else {
-            if ($sforumtype == 'mandatory') {
-                if ($forumnum < $sforum)
-                    $break++;
-            }
-        }
-        if ($swikitype == 'optional') {
-            if ($wikinum >= $swiki)
-                $sop_count++;
-        } else {
-            if ($swikitype == 'mandatory') {
-                if ($wikinum < $swiki)
-                    $break++;
-            }
-        }
-        if ($sbooktype == 'optional') {
-            if ($booknum >= $sbook)
-                $sop_count++;
-        } else {
-            if ($sbooktype == 'mandatory') {
-                if ($booknum < $sbook)
-                    $break++;
-            }
-        }
-        if ($sdatabasetype == 'optional') {
-            if ($databasenum >= $sdatabase)
-                $sop_count++;
-        } else {
-            if ($sdatabasetype == 'mandatory') {
-                if ($databasenum < $sdatabase)
-                    $break++;
-            }
-        }
-        
-        if ($sworkshoptype == 'optional') {
-            if ($workshopnum >= $sworkshop)
-                $sop_count++;
-        } else {
-            if ($sworkshoptype == 'mandatory') {
-                if ($workshopnum < $sworkshop)
-                    $break++;
-            }
-        }
-        if ($schoicetype == 'optional') {
-            if ($choicenum >= $schoice)
-                $sop_count++;
-        } else {
-            if ($schoicetype == 'mandatory') {
-                if ($choicenum < $schoice)
-                    $break++;
-            }
-        }
-        if ($sglossarytype == 'optional') {
-            if ($glossarynum >= $sglossary)
-                $sop_count++;
-        } else {
-            if ($sglossarytype == 'mandatory') {
-                if ($glossarynum < $sglossary)
-                    $break++;
-            }
-        }
-        if ($slabelstype == 'optional') {
-            if ($labelsnum >= $slabels)
-                $sop_count++;
-        } else {
-            if ($slabelstype == 'mandatory') {
-                if ($labelsnum < $slabels)
-                    $break++;
-            }
-        }
-        if ($surlstype == 'optional') {
-            if ($urlsnum >= $surls)
-                $sop_count++;
-        } else {
-            if ($surlstype == 'mandatory') {
-                if ($urlsnum < $surls)
-                    $break++;
-            }
-        }
-        if ($sfolderstype == 'optional') {
-            if ($foldersnum >= $sfolders)
-                $sop_count++;
-        } else {
-            if ($sfolderstype == 'mandatory') {
-                if ($foldersnum < $sfolders)
-                    $break++;
-            }
-        }
-        if ($sheadingstype == 'optional') {
-            if ($headingnum >= $sheadings)
-                $bop_count++;
-        } else {
-            if ($sheadingstype == 'mandatory') {
-                if ($headingnum < $sheadings)
-                    $break++;
-            }
-        }
-    }
-    
-    if (($sop_count >= $config->silvernumoptional) && ($break < 1)) {
-        $gsb_silver = 10;
-        $gsb_score  = "Silver";
-        //echo "HELLO!!!". $gsb_score . "</br>"        ;
-    } else {
-        $gsb_silver = 0;
-        $gsb_score  = "";
-    }
-    $gop_count = 0;
-    $break     = 0;
-    
-    if ($gsb_silver == 10) {
-        
-        if ($gresourcetype == 'optional') {
-            if ($linksnum >= $gresources)
-                $gop_count++;
-        } else {
-            if ($gresourcetype == 'mandatory') {
-                if ($linksnum < $gresources)
-                    $break++;
-            }
-        }
-        
-        if ($gassignmentstype == 'optional') {
-            if ($assignmentnum >= $gassignments)
-                $gop_count++;
-        } else {
-            if ($gassignmentstype == 'mandatory') {
-                if ($assignmentnum < $gassignments)
-                    $break++;
-            }
-        }
-        
-        if ($gfeedbacktype == 'optional') {
-            if ($feedbacknum >= $gfeedback)
-                $gop_count++;
-        } else {
-            if ($gfeedbacktype == 'mandatory') {
-                if ($feedbacknum < $gfeedback)
-                    $break++;
-            }
-        }
-        
-        if ($gimstype == 'optional') {
-            if ($interactnum >= $gims)
-                $gop_count++;
-        } else {
-            if ($gimstype == 'mandatory') {
-                if ($interactnum < $gims)
-                    $break++;
-            }
-        }
-        if ($dbman->table_exists('questionnaire')) {
-            if ($gquesttype == 'optional') {
-                if ($questnum >= $gquest)
-                    $gop_count++;
-            } else {
-                if ($gquesttype == 'mandatory') {
-                    if ($questnum < $gquest)
-                        $break++;
-                }
-            }
-        }
-        
-        if ($gquiztype == 'optional') {
-            if ($quiznum >= $gquiz)
-                $gop_count++;
-        } else {
-            if ($gquiztype == 'mandatory') {
-                if ($quiznum < $gquiz)
-                    $break++;
-            }
-        }
-        
-        if ($gembedtype == 'optional') {
-            if ($embednum >= $gembed)
-                $gop_count++;
-        } else {
-            if ($gembedtype == 'mandatory') {
-                if ($embednum < $gembed)
-                    $break++;
-            }
-        }
-        
-        if ($gchattype == 'optional') {
-            if ($chatnum >= $gchat)
-                $gop_count++;
-        } else {
-            if ($gchattype == 'mandatory') {
-                if ($chatnum < $gchat)
-                    $break++;
-            }
-        }
-        
-        if ($gforumtype == 'optional') {
-            if ($forumnum >= $gforum)
-                $gop_count++;
-        } else {
-            if ($gforumtype == 'mandatory') {
-                if ($forumnum < $gforum)
-                    $break++;
-            }
-        }
-        if ($gwikitype == 'optional') {
-            if ($wikinum >= $gwiki)
-                $gop_count++;
-        } else {
-            if ($gwikitype == 'mandatory') {
-                if ($wikinum < $gwiki)
-                    $break++;
-            }
-        }
-        if ($gbooktype == 'optional') {
-            if ($booknum >= $gbook)
-                $gop_count++;
-        } else {
-            if ($gbooktype == 'mandatory') {
-                if ($booknum < $gbook)
-                    $break++;
-            }
-        }
-        if ($gdatabasetype == 'optional') {
-            if ($databasenum >= $gdatabase)
-                $gop_count++;
-        } else {
-            if ($gdatabasetype == 'mandatory') {
-                if ($databasenum < $gdatabase)
-                    $break++;
-            }
-        }
-        
-        if ($gworkshoptype == 'optional') {
-            if ($workshopnum >= $gworkshop)
-                $gop_count++;
-        } else {
-            if ($gworkshoptype == 'mandatory') {
-                if ($workshopnum < $gworkshop)
-                    $break++;
-            }
-        }
-        if ($gchoicetype == 'optional') {
-            if ($choicenum >= $gchoice)
-                $gop_count++;
-        } else {
-            if ($gchoicetype == 'mandatory') {
-                if ($choicenum < $gchoice)
-                    $break++;
-            }
-        }
-        if ($gglossarytype == 'optional') {
-            if ($glossarynum >= $gglossary)
-                $gop_count++;
-        } else {
-            if ($gglossarytype == 'mandatory') {
-                if ($glossarynum < $gglossary)
-                    $break++;
-            }
-        }
-        if ($glabelstype == 'optional') {
-            if ($labelsnum >= $glabels)
-                $gop_count++;
-        } else {
-            if ($glabelstype == 'mandatory') {
-                if ($labelsnum < $glabels)
-                    $break++;
-            }
-        }
-        if ($gurlstype == 'optional') {
-            if ($urlsnum >= $gurls)
-                $gop_count++;
-        } else {
-            if ($gurlstype == 'mandatory') {
-                if ($urlsnum < $gurls)
-                    $break++;
-            }
-        }
-        if ($gfolderstype == 'optional') {
-            if ($foldersnum >= $gfolders)
-                $gop_count++;
-        } else {
-            if ($gfolderstype == 'mandatory') {
-                if ($foldersnum < $gfolders)
-                    $break++;
-            }
-        }
-        if ($gheadingstype == 'optional') {
-            if ($headingnum >= $gheadings)
-                $bop_count++;
-        } else {
-            if ($gheadingstype == 'mandatory') {
-                if ($headingnum < $gheadings)
-                    $break++;
-            }
-        }
-        
-        
-    }
-    
-    if (($gop_count >= $config->goldnumoptional) && ($break < 1)) {
-        $gsb_gold  = 100;
-        $gsb_score = "Gold";
-    } else {
-        $gsb_gold  = 0;
-        $gsb_score = "";
-    }
-    
-    $gsb = $gsb_bronze + $gsb_silver + $gsb_gold;
-    if ($gsb == 111)
-        $gsb_score = "Gold";
-    else if ($gsb == 11)
-        $gsb_score = "Silver";
-    else if ($gsb == 1)
-        $gsb_score = "Bronze";
-    else if ($gsb == 101)
-        $gsb_score = "Bronze";
-    else
-        $gsb_score = "In Dev";
-    
-}
+	if ($config->studentviews > $studentviews) {
+	    $gsb_score = "In Dev";
+	} elseif ($config->minenrolments >= $enrolnum) {
+	    $gsb_score = "In Dev";
+	} else {
+		// Calculate Bronze
 
+	    $bop_count = 0;
+	    $break     = 0;
 
+	    if ($bresourcetype == 'optional') {
+	        if ($linksnum >= $bresources)
+	            $bop_count++;
+	    } else {
+	        if ($bresourcetype == 'mandatory') {
+	            if ($linksnum < $bresources)
+	                $break++;
+	        }
+	    }
 
+	    if ($bassignmentstype == 'optional') {
+	        if ($assignmentnum >= $bassignments)
+	            $bop_count++;
+	    } else {
+	        if ($bassignmentstype == 'mandatory') {
+	            if ($assignmentnum < $bassignments)
+	                $break++;
+	        }
+	    }
 
+	    if ($bfeedbacktype == 'optional') {
+	        if ($feedbacknum >= $bfeedback)
+	            $bop_count++;
+	    } else {
+	        if ($bfeedbacktype == 'mandatory') {
+	            if ($feedbacknum < $bfeedback)
+	                $break++;
+	        }
+	    }
 
-echo "<tr>				
-				<td><font face='Arial' size='2'>$courseshortname</font></td>
-				<td><font face='Arial' size='2'><a target='_blank' title='Click to enter this course' href='$CFG->wwwroot/course/view.php?id=$courseid'>$coursefullname</a></font></td>
-				<td><font face='Arial' size='2'>$old_gsb_score</font></td>
-				<td><font face='Arial' size='2'>$gsb_score</font></td>
-				<td width='120'>
-					
+	    if ($bimstype == 'optional') {
+	        if ($interactnum >= $bims)
+	            $bop_count++;
+	    } else {
+	        if ($bimstype == 'mandatory') {
+	            if ($interactnum < $bims)
+	                $break++;
+	        }
+	    }
+
+	    if ($dbman->table_exists('questionnaire')) {
+	        if ($bquesttype == 'optional') {
+	            if ($questnum >= $bquest)
+	                $bop_count++;
+	        } else {
+	            if ($bquesttype == 'mandatory') {
+	                if ($questnum < $bquest)
+	                    $break++;
+	            }
+	        }
+	    }
+
+	    if ($bquiztype == 'optional') {
+	        if ($quiznum >= $bquiz)
+	            $bop_count++;
+	    } else {
+	        if ($bquiztype == 'mandatory') {
+	            if ($quiznum < $bquiz)
+	                $break++;
+	        }
+	    }
+
+	    if ($bembedtype == 'optional') {
+	        if ($embednum >= $bembed)
+	            $bop_count++;
+	    } else {
+	        if ($bembedtype == 'mandatory') {
+	            if ($embednum < $bembed)
+	                $break++;
+	        }
+	    }
+
+	    if ($bchattype == 'optional') {
+	        if ($chatnum >= $bchat)
+	            $bop_count++;
+	    } else {
+	        if ($bchattype == 'mandatory') {
+	            if ($chatnum < $bchat)
+	                $break++;
+	        }
+	    }
+
+	    if ($bforumtype == 'optional') {
+	        if ($forumnum >= $bforum)
+	            $bop_count++;
+	    } else {
+	        if ($bforumtype == 'mandatory') {
+	            if ($forumnum < $bforum)
+	                $break++;
+	        }
+	    }
+
+	    if ($bwikitype == 'optional') {
+	        if ($wikinum >= $bwiki)
+	            $bop_count++;
+	    } else {
+	        if ($bwikitype == 'mandatory') {
+	            if ($wikinum < $bwiki)
+	                $break++;
+	        }
+	    }
+
+	    if ($bbooktype == 'optional') {
+	        if ($booknum >= $bbook)
+	            $bop_count++;
+	    } else {
+	        if ($bbooktype == 'mandatory') {
+	            if ($booknum < $bbook)
+	                $break++;
+	        }
+	    }
+
+	    if ($bdatabasetype == 'optional') {
+	        if ($databasenum >= $bdatabase)
+	            $bop_count++;
+	    } else {
+	        if ($bdatabasetype == 'mandatory') {
+	            if ($databasenum < $bdatabase)
+	                $break++;
+	        }
+	    }
+
+	    if ($bworkshoptype == 'optional') {
+	        if ($workshopnum >= $bworkshop)
+	            $bop_count++;
+	    } else {
+	        if ($bworkshoptype == 'mandatory') {
+	            if ($workshopnum < $bworkshop)
+	                $break++;
+	        }
+	    }
+
+	    if ($bchoicetype == 'optional') {
+	        if ($choicenum >= $bchoice)
+	            $bop_count++;
+	    } else {
+	        if ($bchoicetype == 'mandatory') {
+	            if ($choicenum < $bchoice)
+	                $break++;
+	        }
+	    }
+
+	    if ($bglossarytype == 'optional') {
+	        if ($glossarynum >= $bglossary)
+	            $bop_count++;
+	    } else {
+	        if ($bglossarytype == 'mandatory') {
+	            if ($glossarynum < $bglossary)
+	                $break++;
+	        }
+	    }
+
+	    if ($blabelstype == 'optional') {
+	        if ($labelsnum >= $blabels)
+	            $bop_count++;
+	    } else {
+	        if ($blabelstype == 'mandatory') {
+	            if ($labelsnum < $blabels)
+	                $break++;
+	        }
+	    }
+
+	    if ($burlstype == 'optional') {
+	        if ($urlsnum >= $burls)
+	            $bop_count++;
+	    } else {
+	        if ($burlstype == 'mandatory') {
+	            if ($urlsnum < $burls)
+	                $break++;
+	        }
+	    }
+
+	    if ($bfolderstype == 'optional') {
+	        if ($foldersnum >= $bfolders)
+	            $bop_count++;
+	    } else {
+	        if ($bfolderstype == 'mandatory') {
+	            if ($foldersnum < $bfolders)
+	                $break++;
+	        }
+	    }
+
+	    if ($bheadingstype == 'optional') {
+	        if ($headingnum >= $bheadings)
+	            $bop_count++;
+	    } else {
+	        if ($bheadingstype == 'mandatory') {
+	            if ($headingnum < $bheadings)
+	                $break++;
+	        }
+	    }
+
+	    if (($bop_count >= $config->bronzenumoptional) && ($break < 1))
+	        $gsb_bronze = 1;
+	    else
+	        $gsb_bronze = 0;
+
+	    $sop_count = 0;
+	    $break     = 0;
+
+	    if ($gsb_bronze == 1) {
+			// Calculate Silver
+
+	        if ($sresourcetype == 'optional') {
+	            if ($linksnum >= $sresources)
+	                $sop_count++;
+	        } else {
+	            if ($sresourcetype == 'mandatory') {
+	                if ($linksnum < $sresources)
+	                    $break++;
+	            }
+	        }
+
+	        if ($sassignmentstype == 'optional') {
+	            if ($assignmentnum >= $sassignments)
+	                $sop_count++;
+	        } else {
+	            if ($sassignmentstype == 'mandatory') {
+	                if ($assignmentnum < $sassignments)
+	                    $break++;
+	            }
+	        }
+
+	        if ($sfeedbacktype == 'optional') {
+	            if ($feedbacknum >= $sfeedback)
+	                $sop_count++;
+	        } else {
+	            if ($sfeedbacktype == 'mandatory') {
+	                if ($feedbacknum < $sfeedback)
+	                    $break++;
+	            }
+	        }
+
+	        if ($simstype == 'optional') {
+	            if ($interactnum >= $sims)
+	                $sop_count++;
+	        } else {
+	            if ($simstype == 'mandatory') {
+	                if ($interactnum < $sims)
+	                    $break++;
+	            }
+	        }
+
+	        if ($dbman->table_exists('questionnaire')) {
+	            if ($squesttype == 'optional') {
+	                if ($questnum >= $squest)
+	                    $sop_count++;
+	            } else {
+	                if ($squesttype == 'mandatory') {
+	                    if ($questnum < $squest)
+	                        $break++;
+	                }
+	            }
+	        }
+
+	        if ($squiztype == 'optional') {
+	            if ($quiznum >= $squiz)
+	                $sop_count++;
+	        } else {
+	            if ($squiztype == 'mandatory') {
+	                if ($quiznum < $squiz)
+	                    $break++;
+	            }
+	        }
+
+	        if ($sembedtype == 'optional') {
+	            if ($embednum >= $sembed)
+	                $sop_count++;
+	        } else {
+	            if ($sembedtype == 'mandatory') {
+	                if ($embednum < $sembed)
+	                    $break++;
+	            }
+	        }
+
+	        if ($schattype == 'optional') {
+	            if ($chatnum >= $schat)
+	                $sop_count++;
+	        } else {
+	            if ($schattype == 'mandatory') {
+	                if ($chatnum < $schat)
+	                    $break++;
+	            }
+	        }
+
+	        if ($sforumtype == 'optional') {
+	            if ($forumnum >= $sforum)
+	                $sop_count++;
+	        } else {
+	            if ($sforumtype == 'mandatory') {
+	                if ($forumnum < $sforum)
+	                    $break++;
+	            }
+	        }
+
+	        if ($swikitype == 'optional') {
+	            if ($wikinum >= $swiki)
+	                $sop_count++;
+	        } else {
+	            if ($swikitype == 'mandatory') {
+	                if ($wikinum < $swiki)
+	                    $break++;
+	            }
+	        }
+
+	        if ($sbooktype == 'optional') {
+	            if ($booknum >= $sbook)
+	                $sop_count++;
+	        } else {
+	            if ($sbooktype == 'mandatory') {
+	                if ($booknum < $sbook)
+	                    $break++;
+	            }
+	        }
+
+	        if ($sdatabasetype == 'optional') {
+	            if ($databasenum >= $sdatabase)
+	                $sop_count++;
+	        } else {
+	            if ($sdatabasetype == 'mandatory') {
+	                if ($databasenum < $sdatabase)
+	                    $break++;
+	            }
+	        }
+
+	        if ($sworkshoptype == 'optional') {
+	            if ($workshopnum >= $sworkshop)
+	                $sop_count++;
+	        } else {
+	            if ($sworkshoptype == 'mandatory') {
+	                if ($workshopnum < $sworkshop)
+	                    $break++;
+	            }
+	        }
+
+	        if ($schoicetype == 'optional') {
+	            if ($choicenum >= $schoice)
+	                $sop_count++;
+	        } else {
+	            if ($schoicetype == 'mandatory') {
+	                if ($choicenum < $schoice)
+	                    $break++;
+	            }
+	        }
+
+	        if ($sglossarytype == 'optional') {
+	            if ($glossarynum >= $sglossary)
+	                $sop_count++;
+	        } else {
+	            if ($sglossarytype == 'mandatory') {
+	                if ($glossarynum < $sglossary)
+	                    $break++;
+	            }
+	        }
+
+	        if ($slabelstype == 'optional') {
+	            if ($labelsnum >= $slabels)
+	                $sop_count++;
+	        } else {
+	            if ($slabelstype == 'mandatory') {
+	                if ($labelsnum < $slabels)
+	                    $break++;
+	            }
+	        }
+
+	        if ($surlstype == 'optional') {
+	            if ($urlsnum >= $surls)
+	                $sop_count++;
+	        } else {
+	            if ($surlstype == 'mandatory') {
+	                if ($urlsnum < $surls)
+	                    $break++;
+	            }
+	        }
+
+	        if ($sfolderstype == 'optional') {
+	            if ($foldersnum >= $sfolders)
+	                $sop_count++;
+	        } else {
+	            if ($sfolderstype == 'mandatory') {
+	                if ($foldersnum < $sfolders)
+	                    $break++;
+	            }
+	        }
+
+	        if ($sheadingstype == 'optional') {
+	            if ($headingnum >= $sheadings)
+	                $bop_count++;
+	        } else {
+	            if ($sheadingstype == 'mandatory') {
+	                if ($headingnum < $sheadings)
+	                    $break++;
+	            }
+	        }
+
+	    }
+
+	    if (($sop_count >= $config->silvernumoptional) && ($break < 1))
+	        $gsb_silver = 10;
+	    else
+	        $gsb_silver = 0;
+
+	    $gop_count = 0;
+	    $break     = 0;
+
+	    if ($gsb_silver == 10) {
+		    // Calculate Gold
+
+	        if ($gresourcetype == 'optional') {
+	            if ($linksnum >= $gresources)
+	                $gop_count++;
+	        } else {
+	            if ($gresourcetype == 'mandatory') {
+	                if ($linksnum < $gresources)
+	                    $break++;
+	            }
+	        }
+
+	        if ($gassignmentstype == 'optional') {
+	            if ($assignmentnum >= $gassignments)
+	                $gop_count++;
+	        } else {
+	            if ($gassignmentstype == 'mandatory') {
+	                if ($assignmentnum < $gassignments)
+	                    $break++;
+	            }
+	        }
+
+	        if ($gfeedbacktype == 'optional') {
+	            if ($feedbacknum >= $gfeedback)
+	                $gop_count++;
+	        } else {
+	            if ($gfeedbacktype == 'mandatory') {
+	                if ($feedbacknum < $gfeedback)
+	                    $break++;
+	            }
+	        }
+
+	        if ($gimstype == 'optional') {
+	            if ($interactnum >= $gims)
+	                $gop_count++;
+	        } else {
+	            if ($gimstype == 'mandatory') {
+	                if ($interactnum < $gims)
+	                    $break++;
+	            }
+	        }
+
+	        if ($dbman->table_exists('questionnaire')) {
+	            if ($gquesttype == 'optional') {
+	                if ($questnum >= $gquest)
+	                    $gop_count++;
+	            } else {
+	                if ($gquesttype == 'mandatory') {
+	                    if ($questnum < $gquest)
+	                        $break++;
+	                }
+	            }
+	        }
+
+	        if ($gquiztype == 'optional') {
+	            if ($quiznum >= $gquiz)
+	                $gop_count++;
+	        } else {
+	            if ($gquiztype == 'mandatory') {
+	                if ($quiznum < $gquiz)
+	                    $break++;
+	            }
+	        }
+
+	        if ($gembedtype == 'optional') {
+	            if ($embednum >= $gembed)
+	                $gop_count++;
+	        } else {
+	            if ($gembedtype == 'mandatory') {
+	                if ($embednum < $gembed)
+	                    $break++;
+	            }
+	        }
+
+	        if ($gchattype == 'optional') {
+	            if ($chatnum >= $gchat)
+	                $gop_count++;
+	        } else {
+	            if ($gchattype == 'mandatory') {
+	                if ($chatnum < $gchat)
+	                    $break++;
+	            }
+	        }
+
+	        if ($gforumtype == 'optional') {
+	            if ($forumnum >= $gforum)
+	                $gop_count++;
+	        } else {
+	            if ($gforumtype == 'mandatory') {
+	                if ($forumnum < $gforum)
+	                    $break++;
+	            }
+	        }
+
+	        if ($gwikitype == 'optional') {
+	            if ($wikinum >= $gwiki)
+	                $gop_count++;
+	        } else {
+	            if ($gwikitype == 'mandatory') {
+	                if ($wikinum < $gwiki)
+	                    $break++;
+	            }
+	        }
+
+	        if ($gbooktype == 'optional') {
+	            if ($booknum >= $gbook)
+	                $gop_count++;
+	        } else {
+	            if ($gbooktype == 'mandatory') {
+	                if ($booknum < $gbook)
+	                    $break++;
+	            }
+	        }
+
+	        if ($gdatabasetype == 'optional') {
+	            if ($databasenum >= $gdatabase)
+	                $gop_count++;
+	        } else {
+	            if ($gdatabasetype == 'mandatory') {
+	                if ($databasenum < $gdatabase)
+	                    $break++;
+	            }
+	        }
+
+	        if ($gworkshoptype == 'optional') {
+	            if ($workshopnum >= $gworkshop)
+	                $gop_count++;
+	        } else {
+	            if ($gworkshoptype == 'mandatory') {
+	                if ($workshopnum < $gworkshop)
+	                    $break++;
+	            }
+	        }
+
+	        if ($gchoicetype == 'optional') {
+	            if ($choicenum >= $gchoice)
+	                $gop_count++;
+	        } else {
+	            if ($gchoicetype == 'mandatory') {
+	                if ($choicenum < $gchoice)
+	                    $break++;
+	            }
+	        }
+
+	        if ($gglossarytype == 'optional') {
+	            if ($glossarynum >= $gglossary)
+	                $gop_count++;
+	        } else {
+	            if ($gglossarytype == 'mandatory') {
+	                if ($glossarynum < $gglossary)
+	                    $break++;
+	            }
+	        }
+
+	        if ($glabelstype == 'optional') {
+	            if ($labelsnum >= $glabels)
+	                $gop_count++;
+	        } else {
+	            if ($glabelstype == 'mandatory') {
+	                if ($labelsnum < $glabels)
+	                    $break++;
+	            }
+	        }
+
+	        if ($gurlstype == 'optional') {
+	            if ($urlsnum >= $gurls)
+	                $gop_count++;
+	        } else {
+	            if ($gurlstype == 'mandatory') {
+	                if ($urlsnum < $gurls)
+	                    $break++;
+	            }
+	        }
+
+	        if ($gfolderstype == 'optional') {
+	            if ($foldersnum >= $gfolders)
+	                $gop_count++;
+	        } else {
+	            if ($gfolderstype == 'mandatory') {
+	                if ($foldersnum < $gfolders)
+	                    $break++;
+	            }
+	        }
+
+	        if ($gheadingstype == 'optional') {
+	            if ($headingnum >= $gheadings)
+	                $bop_count++;
+	        } else {
+	            if ($gheadingstype == 'mandatory') {
+	                if ($headingnum < $gheadings)
+	                    $break++;
+	            }
+	        }
+
+	    }
+
+	    if (($gop_count >= $config->goldnumoptional) && ($break < 1))
+	        $gsb_gold = 100;
+	    else
+	        $gsb_gold = 0;
+
+	    $gsb = $gsb_bronze + $gsb_silver + $gsb_gold;
+	    if ($gsb == 111)
+	        $gsb_score = "Gold";
+	    else if ($gsb == 11)
+	        $gsb_score = "Silver";
+	    else if ($gsb == 1)
+	        $gsb_score = "Bronze";
+	    else if ($gsb == 101)
+	        $gsb_score = "Bronze";
+	    else
+	        $gsb_score = "In Dev";
+
+	}
+
+	echo "
+		<tr>
+			<td><font face='Arial' size='2'>$courseshortname</font></td>
+			<td><font face='Arial' size='2'><a target='_blank' title='Click to enter this course' href='$CFG->wwwroot/course/view.php?id=$courseid'>$coursefullname</a></font></td>
+			<td><font face='Arial' size='2'>$old_gsb_score</font></td>
+			<td><font face='Arial' size='2'>$gsb_score</font></td>
+			<td width='120'>
 				<select size='1' name='gsb[$courseid][override]' style='font-family: Arial; font-size: 10pt; width: 120'>
 					<option></option>
 					<option value='Gold'>Gold</option>
@@ -1199,20 +1177,19 @@ echo "<tr>
 					<option value='In Dev'>In Dev</option>
 					<option value='exclude'>Exclude</option>
 					<option value='remove'>Remove Over Ride</option>
-				</select></td>
-				<td><font face='Arial' size='2'>$gsboverride</font></td></tr>
+				</select>
+			</td>
+			<td><font face='Arial' size='2'>$gsboverride</font></td>
+		</tr>
+		<input type='hidden' name='gsb[$courseid][prev]' value='$old_gsb_score'>
+		<input type='hidden' name='gsb[$courseid][current]' value='$gsb_score'>
+		<input type='hidden' name='gsb[$courseid][gsbid]' value='$gsbid'>
+		<input type='hidden' name='gsb[$courseid][curentover]' value='$gsboverride'>
+	";
 
-				<input type='hidden' name='gsb[$courseid][prev]' value=$old_gsb_score>
-				<input type='hidden' name='gsb[$courseid][current]' value='$gsb_score'>
-				<input type='hidden' name='courseid' value=$courseid>
-				<input type='hidden' name='gsb[$courseid][gsbid]' value=$gsbid>
-				<input type='hidden' name='categoryid' value=$categoryid>
-				<input type='hidden' name='gsb[$courseid][curentover]' value=$gsboverride>
-				";
-
-
-echo "<input type='hidden' name='course' value='$deptname'>";
 }
+echo "<input type='hidden' name='course' value='$deptname'>";
+echo "<input type='hidden' name='categoryid' value='$categoryid'>";
 echo "</form></table>";
 echo $OUTPUT->footer();
-?>
+
