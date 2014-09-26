@@ -51,6 +51,9 @@ if ($ADMIN->fulltree) {
 
     $settings->add(new admin_setting_configcheckbox('gsb/automedal',
         get_string('automedal', 'report_gsb'), get_string('automedalxp', 'report_gsb'), 0));
+
+    $settings->add(new admin_setting_configcheckbox('gsb/crondisable',
+        get_string('crondisable', 'report_gsb'), get_string('crondisablexp', 'report_gsb'), 0));
 		
 	$settings->add(new admin_setting_pickroles('gsb/studentrole', get_string('roles'),
                         '', array('student'))); 	
