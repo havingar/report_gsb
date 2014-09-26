@@ -55,7 +55,7 @@ if (!empty($_POST['gsb'])) {
 			JOIN {course} ON {course}.id = {block_gsb}.ids";
 
 	if (isset($categoryid)) {
-		$sql .= "WHERE {course}.category = " . $categoryid;
+		$sql .= " WHERE {course}.category = " . $categoryid;
 	}
 
 	$get_dept_codes = $DB->get_records_sql($sql);
